@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  # API service
+  api:
+    container_name: api
+    ports:
+      - "${PORT}:${PORT}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - trima-network
+    environment:
+      PORT: ${PORT}
+      VERSION: ${VERSION}
+
+networks:
+  trima-network:
+    driver: bridge
