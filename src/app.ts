@@ -6,7 +6,7 @@ config();
 import commonRoutes from './apis/routes/common.route'
 import cronRoutes from './apis/routes/cron.route'
 import cors from 'cors';
-const PATH = process.env.PATH || "";
+const PATH = process.env.WHITELIST_DOMAIN || "";
 const app = express();
 
 app.use(express.json());
