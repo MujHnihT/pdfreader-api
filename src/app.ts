@@ -5,14 +5,18 @@ import { config } from 'dotenv';
 config();
 import commonRoutes from './apis/routes/common.route'
 import cronRoutes from './apis/routes/cron.route'
-import {create} from './cores/common'
 import cors from 'cors';
-
+const PATH = process.env.PATH || "";
 const app = express();
 
 app.use(express.json());
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: PATH ,  
+  methods: ["GET", "POST", "PUT", "DELETE"], 
+  credentials: true, 
+}));
 
 app.get('/', (req, res) => {
   res.json({
