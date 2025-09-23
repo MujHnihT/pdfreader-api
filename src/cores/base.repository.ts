@@ -1,5 +1,5 @@
 import { IBaseRepository } from './base.repository.interface';
-import { Model, HydratedDocument, FilterQuery, PipelineStage } from 'mongoose';
+import { Model, HydratedDocument, FilterQuery, PipelineStage, ClientSession } from 'mongoose';
 
 export class BaseRepository<T> implements IBaseRepository<HydratedDocument<T>> {
     constructor(private model: Model<T>) { }
@@ -7,7 +7,9 @@ export class BaseRepository<T> implements IBaseRepository<HydratedDocument<T>> {
     async create(data: T): Promise<HydratedDocument<T>> {
         return this.model.create(data);
     }
-
+    async createMany(data: T[], opts?: { ordered?: boolean; session?: ClientSession }) {
+        return (await this.model.insertMany(data as any[], { ordered: opts?.ordered ?? true, session: opts?.session })) as any;
+    }
     async findAll(condition: FilterQuery<T>, populateFields: string | string[], sortOptions?: Record<string, 1 | -1>): Promise<HydratedDocument<T>[]> {
         let query = this.model.find(condition);
 
@@ -43,6 +45,12 @@ export class BaseRepository<T> implements IBaseRepository<HydratedDocument<T>> {
         const result = await this.model.deleteMany({ _id: { $in: ids } }).exec();
         return result.deletedCount > 0;
     }
+
+    async deleteAll(): Promise<boolean> {
+        const result = await this.model.deleteMany({}).exec();
+        return result.deletedCount > 0;
+    }
+
 
     async findOne(condition: FilterQuery<T>): Promise<HydratedDocument<T> | null> {
         return this.model.findOne(condition).exec();

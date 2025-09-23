@@ -3,7 +3,7 @@ import StandardResponse from '../../cores/standardResponse';
 import BaseRequest from '../../cores/base.request';
 import ICommonService from '../../services/common.service.interface'
 
-class AuthController  {
+class CommonController  {
     private commonService: ICommonService;
     constructor(commonService: ICommonService){
         this.commonService = commonService;
@@ -19,4 +19,4 @@ class AuthController  {
     }
 }
 
-export default AuthController;
+export default CommonController;

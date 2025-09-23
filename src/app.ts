@@ -3,7 +3,8 @@ import bodyParser from 'body-parser';
 import path from 'path';
 import { config } from 'dotenv';
 config();
-import authRoutes from './apis/routes/auth.route'
+import commonRoutes from './apis/routes/common.route'
+import cronRoutes from './apis/routes/cron.route'
 import {create} from './cores/common'
 import cors from 'cors';
 
@@ -15,13 +16,14 @@ app.use(cors());
 
 app.get('/', (req, res) => {
   res.json({
-    message: 'TRIMA',
+    message: 'Reader',
     version: process.env.VERSION
   });
 });
 
 app.use('/specs', express.static(path.join(__dirname, 'specs')));
-app.use('/api/auth', authRoutes);
+app.use('/api/common', commonRoutes);
+app.use('/api/cron', cronRoutes);
 
 app.use('/docs', (req, res) => {
   res.sendFile(path.join(__dirname, 'specs', 'swagger.html'));

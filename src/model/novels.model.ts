@@ -32,9 +32,9 @@ NovelSchema.virtual('updated_at').get(function (this: any) {
     return this.updatedAt;
 });
 
-const SysUser = mongoose.model<INovel>('novels', NovelSchema);
+const Novel = mongoose.model<INovel>('novels', NovelSchema);
 
-export default SysUser;
+export default Novel;
 
 
 
