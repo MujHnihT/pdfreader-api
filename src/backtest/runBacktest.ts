@@ -1,3 +1,5 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { env } from '../config/env';
 import { BinanceClient } from '../exchange/binanceClient';
 import { evaluateAltFlow } from '../strategy/altFlowStrategy';
@@ -32,6 +34,14 @@ interface SymbolCandles {
   candles4h: Candle[];
 }
 
+interface BacktestCandleCache {
+  symbol: string;
+  interval: string;
+  coverageStartTime: number;
+  coverageEndTime: number;
+  candles: Candle[];
+}
+
 type TradeOutcome = Pick<BacktestTrade, 'result' | 'exit' | 'exitTime' | 'r' | 'ambiguous'>;
 
 const scanIntervalMs = 15 * 60 * 1000;
@@ -56,6 +66,91 @@ const parseNumberList = (value: string | undefined, fallback: number[]): number[
     .map((item) => Number(item.trim()))
     .filter((item) => Number.isFinite(item) && item > 0);
   return numbers.length > 0 ? numbers : fallback;
+};
+
+const getBacktestCacheDir = (): string => process.env.BACKTEST_CANDLE_CACHE_DIR || '.cache/backtest-candles';
+
+const getCandleCachePath = (symbol: string, interval: string): string => {
+  const fileName = `${symbol.toUpperCase()}-${interval}.json`;
+  return path.join(getBacktestCacheDir(), fileName);
+};
+
+const mergeCandles = (candles: Candle[]): Candle[] => {
+  const byOpenTime = new Map<number, Candle>();
+  for (const candle of candles) {
+    byOpenTime.set(candle.openTime, candle);
+  }
+  return Array.from(byOpenTime.values()).sort((left, right) => left.openTime - right.openTime);
+};
+
+const readCandleCache = async (symbol: string, interval: string): Promise<BacktestCandleCache | null> => {
+  try {
+    const raw = await fs.readFile(getCandleCachePath(symbol, interval), 'utf8');
+    const cache = JSON.parse(raw) as BacktestCandleCache;
+    if (
+      cache.symbol === symbol &&
+      cache.interval === interval &&
+      Number.isFinite(cache.coverageStartTime) &&
+      Number.isFinite(cache.coverageEndTime) &&
+      Array.isArray(cache.candles)
+    ) {
+      return { ...cache, candles: mergeCandles(cache.candles) };
+    }
+  } catch (error) {
+    const code = error instanceof Error && 'code' in error ? (error as NodeJS.ErrnoException).code : undefined;
+    if (code !== 'ENOENT') {
+      console.warn(`[backtest] ignored candle cache ${symbol} ${interval}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  return null;
+};
+
+const writeCandleCache = async (cache: BacktestCandleCache): Promise<void> => {
+  await fs.mkdir(getBacktestCacheDir(), { recursive: true });
+  await fs.writeFile(getCandleCachePath(cache.symbol, cache.interval), `${JSON.stringify(cache, null, 2)}\n`, 'utf8');
+};
+
+const getCachedCandlesInRange = async (
+  exchange: BinanceClient,
+  symbol: string,
+  interval: string,
+  startTime: number,
+  endTime: number,
+): Promise<Candle[]> => {
+  const cached = await readCandleCache(symbol, interval);
+  let coverageStartTime = cached?.coverageStartTime ?? Number.POSITIVE_INFINITY;
+  let coverageEndTime = cached?.coverageEndTime ?? Number.NEGATIVE_INFINITY;
+  let candles = cached?.candles ?? [];
+  let cacheChanged = false;
+
+  if (coverageStartTime > startTime) {
+    const missingEnd = Math.min(coverageStartTime - 1, endTime);
+    if (startTime < missingEnd) {
+      console.log(`[backtest] fetching ${symbol} ${interval} left range ${formatDate(startTime)} -> ${formatDate(missingEnd)}`);
+      candles = mergeCandles([...candles, ...(await exchange.getCandlesInRange(symbol, interval, startTime, missingEnd))]);
+    }
+    coverageStartTime = startTime;
+    cacheChanged = true;
+  }
+
+  if (coverageEndTime < endTime) {
+    const missingStart = Math.max(coverageEndTime + 1, startTime);
+    if (missingStart < endTime) {
+      console.log(`[backtest] fetching ${symbol} ${interval} right range ${formatDate(missingStart)} -> ${formatDate(endTime)}`);
+      candles = mergeCandles([...candles, ...(await exchange.getCandlesInRange(symbol, interval, missingStart, endTime))]);
+    }
+    coverageEndTime = endTime;
+    cacheChanged = true;
+  }
+
+  if (cacheChanged) {
+    await writeCandleCache({ symbol, interval, coverageStartTime, coverageEndTime, candles });
+  } else {
+    console.log(`[backtest] cache hit ${symbol} ${interval}`);
+  }
+
+  return candles.filter((candle) => candle.closeTime >= startTime && candle.closeTime < endTime);
 };
 
 const resampleCandles = (candles: Candle[], hours: number): Candle[] => {
@@ -400,7 +495,7 @@ const run = async (): Promise<void> => {
   const symbols = env.scanSymbols.length > 0 ? env.scanSymbols : await exchange.getTopUsdtSymbols(env.maxSymbols);
 
   console.log(`Backtest ${months} month(s): ${formatDate(start)} -> ${formatDate(end)}`);
-  console.log(`Scan interval: 15m, symbols=${symbols.length}, cache=${env.topSymbolsCachePath}`);
+  console.log(`Scan interval: 15m, symbols=${symbols.length}, symbolCache=${env.topSymbolsCachePath}, candleCache=${getBacktestCacheDir()}`);
   console.log(`Symbols: ${symbols.join(', ')}`);
   const optimize = ['true', '1', 'yes', 'y'].includes((process.env.BACKTEST_OPTIMIZE || '').toLowerCase());
   const maxHoldHours = toNumber(process.env.BACKTEST_MAX_HOLD_HOURS, 0);
@@ -419,8 +514,8 @@ const run = async (): Promise<void> => {
       batch.map(async (symbol) => {
         try {
           const [candles15m, candles1h] = await Promise.all([
-            exchange.getCandlesInRange(symbol, '15m', warmupStart, end),
-            exchange.getCandlesInRange(symbol, '1h', warmupStart, end),
+            getCachedCandlesInRange(exchange, symbol, '15m', warmupStart, end),
+            getCachedCandlesInRange(exchange, symbol, '1h', warmupStart, end),
           ]);
           return {
             symbol,
