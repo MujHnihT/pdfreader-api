@@ -6,6 +6,7 @@ export class TelegramClient {
     private readonly sendMessageUrl: string,
     private readonly botToken: string,
     private readonly chatId: string,
+    private readonly maxHoldHours = 0,
   ) {}
 
   isConfigured(): boolean {
@@ -13,15 +14,23 @@ export class TelegramClient {
   }
 
   async sendSignal(signal: StrategySignal): Promise<void> {
+    await this.sendMessage(this.formatSignal(signal));
+  }
+
+  async sendSignalList(signals: StrategySignal[]): Promise<void> {
+    if (signals.length === 0) return;
+    await this.sendMessage(this.formatSignalList(signals));
+  }
+
+  private async sendMessage(text: string): Promise<void> {
     if (!this.isConfigured()) {
-      console.warn('Telegram is not configured. Signal skipped:', signal.symbol, signal.side);
+      console.warn('Telegram is not configured. Message skipped.');
       return;
     }
 
-    const text = this.formatSignal(signal);
     if (this.sendMessageUrl) {
       await axios.get(this.sendMessageUrl, {
-        params: { text },
+        params: { text, parse_mode: 'HTML', disable_web_page_preview: true },
         timeout: 15000,
       });
       return;
@@ -39,20 +48,67 @@ export class TelegramClient {
     );
   }
 
-  private formatSignal(signal: StrategySignal): string {
-    const time = new Date(signal.h4CloseTime).toISOString();
+  private formatSignalList(signals: StrategySignal[]): string {
+    const buySignals = signals.filter((signal) => signal.side === 'BUY');
+    const sellSignals = signals.filter((signal) => signal.side === 'SELL');
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour12: false,
+    });
+
     return [
-      `${signal.side} ${signal.symbol}`,
-      `Price: ${this.formatNumber(signal.price)}`,
-      `TP: ${this.formatNumber(signal.tp)}`,
-      `SL: ${this.formatNumber(signal.sl)}`,
-      `H4 close: ${time}`,
-      `Vol 1H: ${this.formatNumber(signal.volume.vol1h)} / MA ${this.formatNumber(signal.volume.vol1hMA)}`,
-      `Vol 2H: ${this.formatNumber(signal.volume.vol2h)} / MA ${this.formatNumber(signal.volume.vol2hMA)}`,
+      `<b>ALT FLOW SIGNALS</b>`,
+      `Time: <code>${this.escapeHtml(time)}</code>`,
+      '',
+      `<b>BUY (${buySignals.length})</b>`,
+      buySignals.length > 0 ? buySignals.map((signal) => this.formatSignalLine(signal)).join('\n') : '<code>None</code>',
+      '',
+      `<b>SELL (${sellSignals.length})</b>`,
+      sellSignals.length > 0 ? sellSignals.map((signal) => this.formatSignalLine(signal)).join('\n') : '<code>None</code>',
+      this.maxHoldHours > 0 ? `\nMax hold: <code>${this.maxHoldHours}h</code>` : '',
+    ].join('\n');
+  }
+
+  private formatSignalLine(signal: StrategySignal): string {
+    return [
+      `<code>${this.escapeHtml(signal.symbol)}</code>`,
+      `Entry <code>${this.formatNumber(signal.price)}</code>`,
+      `TP <code>${this.formatNumber(signal.tp)}</code>`,
+      `SL <code>${this.formatNumber(signal.sl)}</code>`,
+      ...(this.maxHoldHours > 0 ? [`Hold &lt;= <code>${this.maxHoldHours}h</code>`] : []),
+    ].join(' | ');
+  }
+
+  private formatSignal(signal: StrategySignal): string {
+    const time = new Date(signal.h4CloseTime).toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour12: false,
+    });
+    const symbol = this.escapeHtml(signal.symbol);
+    const side = this.escapeHtml(signal.side);
+    const price = this.formatNumber(signal.price);
+    const tp = this.formatNumber(signal.tp);
+    const sl = this.formatNumber(signal.sl);
+
+    return [
+      `<b>${side} SIGNAL</b>`,
+      `Pair: <code>${symbol}</code>`,
+      `Entry: <code>${price}</code>`,
+      `TP: <code>${tp}</code>`,
+      `SL: <code>${sl}</code>`,
+      ...(this.maxHoldHours > 0 ? [`Max hold: <code>${this.maxHoldHours}h</code>`] : []),
+      `H4 close: <code>${this.escapeHtml(time)}</code>`,
     ].join('\n');
   }
 
   private formatNumber(value: number): string {
     return Number.isInteger(value) ? value.toString() : value.toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 }

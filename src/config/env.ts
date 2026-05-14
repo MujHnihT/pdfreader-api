@@ -30,6 +30,8 @@ export const env = {
   maxSymbols: toNumber(process.env.MAX_SYMBOLS, 50),
   scanConcurrency: toNumber(process.env.SCAN_CONCURRENCY, 5),
   scanSymbols: toList(process.env.SCAN_SYMBOLS),
+  topSymbolsCachePath: process.env.TOP_SYMBOLS_CACHE_PATH || '.cache/top-usdt-symbols.json',
+  topSymbolsCacheTtlMs: toNumber(process.env.TOP_SYMBOLS_CACHE_TTL_MS, 60 * 60 * 1000),
   telegramSendMessageUrl: process.env.TELEGRAM_SEND_MESSAGE_URL || '',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
@@ -41,4 +43,5 @@ export const env = {
   needCloseConfirm: toBoolean(process.env.NEED_CLOSE_CONFIRM, false),
   slLookback1h: toNumber(process.env.SL_LOOKBACK_1H, 8),
   rewardRisk: toNumber(process.env.REWARD_RISK, 1.2),
+  maxHoldHours: toNumber(process.env.MAX_HOLD_HOURS, 0),
 };

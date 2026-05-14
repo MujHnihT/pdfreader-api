@@ -12,8 +12,17 @@ interface ScanResult {
 }
 
 export class CoinScanner {
-  private readonly exchange = new BinanceClient(env.binanceBaseUrl);
-  private readonly telegram = new TelegramClient(env.telegramSendMessageUrl, env.telegramBotToken, env.telegramChatId);
+  private readonly exchange = new BinanceClient(
+    env.binanceBaseUrl,
+    env.topSymbolsCachePath,
+    env.topSymbolsCacheTtlMs,
+  );
+  private readonly telegram = new TelegramClient(
+    env.telegramSendMessageUrl,
+    env.telegramBotToken,
+    env.telegramChatId,
+    env.maxHoldHours,
+  );
   private readonly sentSignalKeys = new Set<string>();
   private running = false;
 
@@ -37,13 +46,18 @@ export class CoinScanner {
   async scanAndNotify(): Promise<ScanResult> {
     console.log(`[scanner] scanAndNotify started at ${new Date().toISOString()}`);
     const result = await this.scan();
+    const newSignals: StrategySignal[] = [];
 
     for (const signal of result.signals) {
       const key = `${signal.symbol}:${signal.side}:${signal.h4CloseTime}`;
       if (this.sentSignalKeys.has(key)) continue;
       this.sentSignalKeys.add(key);
-      console.log(`[scanner] sending Telegram signal ${signal.side} ${signal.symbol}`);
-      await this.telegram.sendSignal(signal);
+      newSignals.push(signal);
+    }
+
+    if (newSignals.length > 0) {
+      console.log(`[scanner] sending Telegram signal list. signals=${newSignals.length}`);
+      await this.telegram.sendSignalList(newSignals);
     }
 
     console.log(
