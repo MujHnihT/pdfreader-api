@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { StrategySignal } from '../strategy/types';
 
+export interface ExitNotification {
+  signal: StrategySignal;
+  exitPrice: number;
+  reason: string;
+  checkedAt: number;
+}
+
 export class TelegramClient {
   constructor(
     private readonly sendMessageUrl: string,
@@ -20,6 +27,11 @@ export class TelegramClient {
   async sendSignalList(signals: StrategySignal[]): Promise<void> {
     if (signals.length === 0) return;
     await this.sendMessage(this.formatSignalList(signals));
+  }
+
+  async sendExitList(exits: ExitNotification[]): Promise<void> {
+    if (exits.length === 0) return;
+    await this.sendMessage(this.formatExitList(exits));
   }
 
   private async sendMessage(text: string): Promise<void> {
@@ -99,6 +111,31 @@ export class TelegramClient {
       ...(this.maxHoldHours > 0 ? [`Max hold: <code>${this.maxHoldHours}h</code>`] : []),
       `H4 close: <code>${this.escapeHtml(time)}</code>`,
     ].join('\n');
+  }
+
+  private formatExitList(exits: ExitNotification[]): string {
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour12: false,
+    });
+
+    return [
+      `<b>ALT FLOW EXIT</b>`,
+      `Time: <code>${this.escapeHtml(time)}</code>`,
+      '',
+      exits.map((exit) => this.formatExitLine(exit)).join('\n'),
+    ].join('\n');
+  }
+
+  private formatExitLine(exit: ExitNotification): string {
+    const signal = exit.signal;
+    return [
+      `<code>${this.escapeHtml(signal.symbol)}</code>`,
+      `Exit <code>${this.escapeHtml(signal.side)}</code>`,
+      `Price <code>${this.formatNumber(exit.exitPrice)}</code>`,
+      `Entry <code>${this.formatNumber(signal.price)}</code>`,
+      `Reason <code>${this.escapeHtml(exit.reason)}</code>`,
+    ].join(' | ');
   }
 
   private formatNumber(value: number): string {

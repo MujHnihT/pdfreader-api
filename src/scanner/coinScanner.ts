@@ -1,14 +1,23 @@
 import cron from 'node-cron';
+import fs from 'fs/promises';
+import path from 'path';
 import { env } from '../config/env';
 import { BinanceClient } from '../exchange/binanceClient';
 import { evaluateAltFlow } from '../strategy/altFlowStrategy';
-import { StrategySignal } from '../strategy/types';
-import { TelegramClient } from '../telegram/telegramClient';
+import { Candle, StrategySignal } from '../strategy/types';
+import { ExitNotification, TelegramClient } from '../telegram/telegramClient';
 
 interface ScanResult {
   checked: number;
   signals: StrategySignal[];
+  exits: ExitNotification[];
   errors: Array<{ symbol: string; message: string }>;
+}
+
+interface SymbolScan {
+  symbol: string;
+  signal: StrategySignal | null;
+  latestH4: Candle | null;
 }
 
 export class CoinScanner {
@@ -24,6 +33,8 @@ export class CoinScanner {
     env.maxHoldHours,
   );
   private readonly sentSignalKeys = new Set<string>();
+  private readonly activeSignals = new Map<string, StrategySignal>();
+  private activeSignalsLoaded = false;
   private running = false;
 
   startCron(): void {
@@ -45,8 +56,14 @@ export class CoinScanner {
 
   async scanAndNotify(): Promise<ScanResult> {
     console.log(`[scanner] scanAndNotify started at ${new Date().toISOString()}`);
+    await this.loadActiveSignals();
     const result = await this.scan();
     const newSignals: StrategySignal[] = [];
+
+    if (result.exits.length > 0) {
+      console.log(`[scanner] sending Telegram exit list. exits=${result.exits.length}`);
+      await this.telegram.sendExitList(result.exits);
+    }
 
     for (const signal of result.signals) {
       const key = `${signal.symbol}:${signal.side}:${signal.h4CloseTime}`;
@@ -58,21 +75,26 @@ export class CoinScanner {
     if (newSignals.length > 0) {
       console.log(`[scanner] sending Telegram signal list. signals=${newSignals.length}`);
       await this.telegram.sendSignalList(newSignals);
+      for (const signal of newSignals) {
+        this.activeSignals.set(signal.symbol, signal);
+      }
+      await this.saveActiveSignals();
     }
 
     console.log(
-      `[scanner] scanAndNotify finished. checked=${result.checked}, signals=${result.signals.length}, errors=${result.errors.length}`,
+      `[scanner] scanAndNotify finished. checked=${result.checked}, signals=${result.signals.length}, exits=${result.exits.length}, errors=${result.errors.length}`,
     );
     return result;
   }
 
   async scan(): Promise<ScanResult> {
     if (this.running) {
-      return { checked: 0, signals: [], errors: [{ symbol: 'scanner', message: 'Scan is already running' }] };
+      return { checked: 0, signals: [], exits: [], errors: [{ symbol: 'scanner', message: 'Scan is already running' }] };
     }
 
     this.running = true;
     const signals: StrategySignal[] = [];
+    const scans: SymbolScan[] = [];
     const errors: Array<{ symbol: string; message: string }> = [];
 
     try {
@@ -82,12 +104,14 @@ export class CoinScanner {
       for (let index = 0; index < symbols.length; index += env.scanConcurrency) {
         const batch = symbols.slice(index, index + env.scanConcurrency);
         console.log(`[scanner] scanning batch ${index + 1}-${index + batch.length}/${symbols.length}: ${batch.join(', ')}`);
-        const batchSignals = await Promise.all(batch.map((symbol) => this.scanSymbol(symbol, errors)));
-        signals.push(...batchSignals.filter((signal): signal is StrategySignal => Boolean(signal)));
+        const batchScans = await Promise.all(batch.map((symbol) => this.scanSymbol(symbol, errors)));
+        scans.push(...batchScans);
+        signals.push(...batchScans.map((scan) => scan.signal).filter((signal): signal is StrategySignal => Boolean(signal)));
       }
 
-      console.log(`Scan completed. Checked=${symbols.length}, signals=${signals.length}, errors=${errors.length}`);
-      return { checked: symbols.length, signals, errors };
+      const exits = await this.findExitNotifications(scans);
+      console.log(`Scan completed. Checked=${symbols.length}, signals=${signals.length}, exits=${exits.length}, errors=${errors.length}`);
+      return { checked: symbols.length, signals, exits, errors };
     } finally {
       this.running = false;
     }
@@ -96,7 +120,7 @@ export class CoinScanner {
   private async scanSymbol(
     symbol: string,
     errors: Array<{ symbol: string; message: string }>,
-  ): Promise<StrategySignal | null> {
+  ): Promise<SymbolScan> {
     try {
       console.log(`[scanner] scanning ${symbol}`);
       const [candles1h, candles2h, candles4h] = await Promise.all([
@@ -126,12 +150,96 @@ export class CoinScanner {
         console.log(`[scanner] no signal ${symbol}`);
       }
 
-      return signal;
+      return { symbol, signal, latestH4: candles4h[candles4h.length - 1] || null };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`[scanner] error ${symbol}: ${message}`);
       errors.push({ symbol, message });
-      return null;
+      return { symbol, signal: null, latestH4: null };
+    }
+  }
+
+  private async findExitNotifications(scans: SymbolScan[]): Promise<ExitNotification[]> {
+    const exits: ExitNotification[] = [];
+    const scanBySymbol = new Map(scans.map((scan) => [scan.symbol, scan]));
+
+    for (const [symbol, activeSignal] of this.activeSignals.entries()) {
+      const scan = scanBySymbol.get(symbol);
+      if (!scan?.latestH4) continue;
+
+      const exit = this.getExitNotification(activeSignal, scan);
+      if (!exit) continue;
+
+      exits.push(exit);
+      this.activeSignals.delete(symbol);
+    }
+
+    if (exits.length > 0) {
+      await this.saveActiveSignals();
+    }
+
+    return exits;
+  }
+
+  private getExitNotification(activeSignal: StrategySignal, scan: SymbolScan): ExitNotification | null {
+    const oppositeSide = activeSignal.side === 'BUY' ? 'SELL' : 'BUY';
+    if (scan.signal?.side === oppositeSide) {
+      return {
+        signal: activeSignal,
+        exitPrice: scan.signal.price,
+        reason: `opposite ${oppositeSide} signal`,
+        checkedAt: Date.now(),
+      };
+    }
+
+    const latestH4 = scan.latestH4;
+    if (!latestH4 || latestH4.closeTime <= activeSignal.h4CloseTime) return null;
+
+    const h4AgainstBuy = activeSignal.side === 'BUY' && latestH4.close < latestH4.open;
+    const h4AgainstSell = activeSignal.side === 'SELL' && latestH4.close > latestH4.open;
+    if (!h4AgainstBuy && !h4AgainstSell) return null;
+
+    return {
+      signal: activeSignal,
+      exitPrice: latestH4.close,
+      reason: activeSignal.side === 'BUY' ? 'H4 turned red' : 'H4 turned green',
+      checkedAt: Date.now(),
+    };
+  }
+
+  private async loadActiveSignals(): Promise<void> {
+    if (this.activeSignalsLoaded) return;
+    this.activeSignalsLoaded = true;
+
+    try {
+      const raw = await fs.readFile(env.activeSignalsCachePath, 'utf8');
+      const signals = JSON.parse(raw) as StrategySignal[];
+      if (!Array.isArray(signals)) return;
+
+      this.activeSignals.clear();
+      for (const signal of signals) {
+        if (signal?.symbol && signal?.side) {
+          this.activeSignals.set(signal.symbol, signal);
+          this.sentSignalKeys.add(`${signal.symbol}:${signal.side}:${signal.h4CloseTime}`);
+        }
+      }
+
+      console.log(`[scanner] active signals loaded. count=${this.activeSignals.size}`);
+    } catch (error) {
+      const code = error instanceof Error && 'code' in error ? (error as NodeJS.ErrnoException).code : undefined;
+      if (code !== 'ENOENT') {
+        console.warn(`[scanner] could not load active signals: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+
+  private async saveActiveSignals(): Promise<void> {
+    try {
+      await fs.mkdir(path.dirname(env.activeSignalsCachePath), { recursive: true });
+      const signals = Array.from(this.activeSignals.values());
+      await fs.writeFile(env.activeSignalsCachePath, `${JSON.stringify(signals, null, 2)}\n`, 'utf8');
+    } catch (error) {
+      console.warn(`[scanner] could not save active signals: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

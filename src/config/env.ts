@@ -32,6 +32,7 @@ export const env = {
   scanSymbols: toList(process.env.SCAN_SYMBOLS),
   topSymbolsCachePath: process.env.TOP_SYMBOLS_CACHE_PATH || '.cache/top-usdt-symbols.json',
   topSymbolsCacheTtlMs: toNumber(process.env.TOP_SYMBOLS_CACHE_TTL_MS, 60 * 60 * 1000),
+  activeSignalsCachePath: process.env.ACTIVE_SIGNALS_CACHE_PATH || '.cache/active-signals.json',
   telegramSendMessageUrl: process.env.TELEGRAM_SEND_MESSAGE_URL || '',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
