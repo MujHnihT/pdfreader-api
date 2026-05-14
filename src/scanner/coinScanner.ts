@@ -35,15 +35,20 @@ export class CoinScanner {
   }
 
   async scanAndNotify(): Promise<ScanResult> {
+    console.log(`[scanner] scanAndNotify started at ${new Date().toISOString()}`);
     const result = await this.scan();
 
     for (const signal of result.signals) {
       const key = `${signal.symbol}:${signal.side}:${signal.h4CloseTime}`;
       if (this.sentSignalKeys.has(key)) continue;
       this.sentSignalKeys.add(key);
+      console.log(`[scanner] sending Telegram signal ${signal.side} ${signal.symbol}`);
       await this.telegram.sendSignal(signal);
     }
 
+    console.log(
+      `[scanner] scanAndNotify finished. checked=${result.checked}, signals=${result.signals.length}, errors=${result.errors.length}`,
+    );
     return result;
   }
 
@@ -58,9 +63,11 @@ export class CoinScanner {
 
     try {
       const symbols = env.scanSymbols.length > 0 ? env.scanSymbols : await this.exchange.getTopUsdtSymbols(env.maxSymbols);
+      console.log(`[scanner] symbols to scan (${symbols.length}): ${symbols.join(', ')}`);
 
       for (let index = 0; index < symbols.length; index += env.scanConcurrency) {
         const batch = symbols.slice(index, index + env.scanConcurrency);
+        console.log(`[scanner] scanning batch ${index + 1}-${index + batch.length}/${symbols.length}: ${batch.join(', ')}`);
         const batchSignals = await Promise.all(batch.map((symbol) => this.scanSymbol(symbol, errors)));
         signals.push(...batchSignals.filter((signal): signal is StrategySignal => Boolean(signal)));
       }
@@ -77,13 +84,14 @@ export class CoinScanner {
     errors: Array<{ symbol: string; message: string }>,
   ): Promise<StrategySignal | null> {
     try {
+      console.log(`[scanner] scanning ${symbol}`);
       const [candles1h, candles2h, candles4h] = await Promise.all([
         this.exchange.getClosedCandles(symbol, '1h', Math.max(env.volLen + env.slLookback1h + 5, 40)),
         this.exchange.getClosedCandles(symbol, '2h', Math.max(env.volLen + 5, 30)),
         this.exchange.getClosedCandles(symbol, '4h', 10),
       ]);
 
-      return evaluateAltFlow(
+      const signal = evaluateAltFlow(
         { symbol, candles1h, candles2h, candles4h },
         {
           volLen: env.volLen,
@@ -95,8 +103,20 @@ export class CoinScanner {
           rewardRisk: env.rewardRisk,
         },
       );
+
+      if (signal) {
+        console.log(
+          `[scanner] signal found ${signal.side} ${signal.symbol} price=${signal.price} tp=${signal.tp} sl=${signal.sl}`,
+        );
+      } else {
+        console.log(`[scanner] no signal ${symbol}`);
+      }
+
+      return signal;
     } catch (error) {
-      errors.push({ symbol, message: error instanceof Error ? error.message : String(error) });
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[scanner] error ${symbol}: ${message}`);
+      errors.push({ symbol, message });
       return null;
     }
   }

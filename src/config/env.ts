@@ -33,7 +33,7 @@ export const env = {
   telegramSendMessageUrl: process.env.TELEGRAM_SEND_MESSAGE_URL || '',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
   telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
-  binanceBaseUrl: process.env.BINANCE_BASE_URL || 'https://api.binance.com',
+  binanceBaseUrl: process.env.BINANCE_BASE_URL || 'https://fapi.binance.com',
   volLen: toNumber(process.env.VOL_LEN, 20),
   volMultAvg: toNumber(process.env.VOL_MULT_AVG, 1.2),
   volMultPrev: toNumber(process.env.VOL_MULT_PREV, 1.0),

@@ -26,7 +26,7 @@ interface ExchangeInfo {
     symbol: string;
     status: string;
     quoteAsset: string;
-    isSpotTradingAllowed: boolean;
+    contractType?: string;
   }>;
 }
 
@@ -35,13 +35,18 @@ export class BinanceClient {
 
   async getTopUsdtSymbols(limit: number): Promise<string[]> {
     const [exchangeInfoRes, tickerRes] = await Promise.all([
-      axios.get<ExchangeInfo>(`${this.baseUrl}/api/v3/exchangeInfo`, { timeout: 15000 }),
-      axios.get<BinanceTicker[]>(`${this.baseUrl}/api/v3/ticker/24hr`, { timeout: 15000 }),
+      axios.get<ExchangeInfo>(`${this.baseUrl}/fapi/v1/exchangeInfo`, { timeout: 15000 }),
+      axios.get<BinanceTicker[]>(`${this.baseUrl}/fapi/v1/ticker/24hr`, { timeout: 15000 }),
     ]);
 
     const tradable = new Set(
       exchangeInfoRes.data.symbols
-        .filter((symbol) => symbol.status === 'TRADING' && symbol.quoteAsset === 'USDT' && symbol.isSpotTradingAllowed)
+        .filter(
+          (symbol) =>
+            symbol.status === 'TRADING' &&
+            symbol.quoteAsset === 'USDT' &&
+            (!symbol.contractType || symbol.contractType === 'PERPETUAL'),
+        )
         .map((symbol) => symbol.symbol),
     );
 
@@ -53,7 +58,7 @@ export class BinanceClient {
   }
 
   async getClosedCandles(symbol: string, interval: string, limit: number): Promise<Candle[]> {
-    const response = await axios.get<BinanceKline[]>(`${this.baseUrl}/api/v3/klines`, {
+    const response = await axios.get<BinanceKline[]>(`${this.baseUrl}/fapi/v1/klines`, {
       params: { symbol, interval, limit },
       timeout: 15000,
     });

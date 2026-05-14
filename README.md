@@ -74,4 +74,4 @@ Khi deploy lên Vercel, set các biến môi trường giống `.env.example`. T
 
 ## Nguồn dữ liệu
 
-Implementation hiện dùng Binance public OHLCV vì logic Pine cần nến `1h/2h/4h` và volume. Coinglass/CoinMarketCap thường cần API key hoặc không cung cấp đủ OHLCV miễn phí cho flow này. Có thể thay client trong `src/exchange/binanceClient.ts` nếu bạn muốn đổi sang provider khác.
+Implementation hiện dùng Binance Futures USDT-M public OHLCV vì logic Pine cần nến `1h/2h/4h` và volume. Coinglass/CoinMarketCap thường cần API key hoặc không cung cấp đủ OHLCV miễn phí cho flow này. Có thể thay client trong `src/exchange/binanceClient.ts` nếu bạn muốn đổi sang provider khác.
