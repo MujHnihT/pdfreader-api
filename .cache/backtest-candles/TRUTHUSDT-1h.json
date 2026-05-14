@@ -2,7 +2,7 @@
   "symbol": "TRUTHUSDT",
   "interval": "1h",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778752830195,
+  "coverageEndTime": 1778753347329,
   "candles": [
     {
       "openTime": 1759320000000,
