@@ -1,37 +1,38 @@
 import express from 'express';
-import bodyParser from 'body-parser';
-import path from 'path';
-import { config } from 'dotenv';
-config();
-import commonRoutes from './apis/routes/common.route'
-import cronRoutes from './apis/routes/cron.route'
-import cors from 'cors';
-const PATH = process.env.WHITELIST_DOMAIN || "";
+import { env } from './config/env';
+import { coinScanner } from './scanner/coinScanner';
+
 const app = express();
 
 app.use(express.json());
 
-// app.use(cors());
-app.use(cors({
-  origin: PATH ,  
-  methods: ["GET", "POST", "PUT", "DELETE"], 
-  credentials: true, 
-}));
-
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.json({
-    message: 'Reader',
-    version: process.env.VERSION
+    name: 'alt-flow-coin-scanner',
+    version: env.version,
+    cronEnabled: env.cronEnabled,
+    cronExpression: env.cronExpression,
+    timezone: env.timezone,
   });
 });
 
-app.use('/specs', express.static(path.join(__dirname, 'specs')));
-app.use('/api/common', commonRoutes);
-app.use('/api/cron', cronRoutes);
-
-app.use('/docs', (req, res) => {
-  res.sendFile(path.join(__dirname, 'specs', 'swagger.html'));
+app.get('/health', (_req, res) => {
+  res.json({ ok: true, time: new Date().toISOString() });
 });
 
-app.use(bodyParser.json());
+app.post('/scan', async (_req, res) => {
+  const result = await coinScanner.scanAndNotify();
+  res.json(result);
+});
+
+app.get('/api/cron', async (_req, res) => {
+  const result = await coinScanner.scanAndNotify();
+  res.json(result);
+});
+
+app.get('/api/cron/vercel', async (_req, res) => {
+  const result = await coinScanner.scanAndNotify();
+  res.json(result);
+});
+
 export default app;

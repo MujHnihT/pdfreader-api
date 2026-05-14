@@ -3,31 +3,22 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "src/index.ts"
-    },
-        {
-      "src": "/swagger-ui.css",
-      "dest": "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css"
-    },
-    {
-      "src": "/swagger-ui-bundle.js",
-      "dest": "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js"
-    },
-    {
-      "src": "/swagger-ui-standalone-preset.js",
-      "dest": "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js"
     }
   ],
   "crons": [
     {
       "path": "/api/cron/vercel",
-      "schedule": "0 9 * * *"
+      "schedule": "*/15 * * * *"
     }
   ]
-} 
+}
