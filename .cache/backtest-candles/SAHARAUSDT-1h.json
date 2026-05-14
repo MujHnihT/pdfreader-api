@@ -2,7 +2,7 @@
   "symbol": "SAHARAUSDT",
   "interval": "1h",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1750939200000,

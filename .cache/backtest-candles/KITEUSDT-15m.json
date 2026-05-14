@@ -2,7 +2,7 @@
   "symbol": "KITEUSDT",
   "interval": "15m",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1761733800000,
@@ -170166,6 +170166,24 @@
       "close": 0.22566,
       "volume": 3005312,
       "closeTime": 1778750099999
+    },
+    {
+      "openTime": 1778751000000,
+      "open": 0.22644,
+      "high": 0.22774,
+      "low": 0.22624,
+      "close": 0.22674,
+      "volume": 2446723,
+      "closeTime": 1778751899999
+    },
+    {
+      "openTime": 1778751900000,
+      "open": 0.22673,
+      "high": 0.22685,
+      "low": 0.22477,
+      "close": 0.22572,
+      "volume": 3252840,
+      "closeTime": 1778752799999
     }
   ]
 }

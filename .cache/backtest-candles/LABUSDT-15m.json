@@ -2,7 +2,7 @@
   "symbol": "LABUSDT",
   "interval": "15m",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1760711400000,
@@ -180390,6 +180390,24 @@
       "close": 5.4865,
       "volume": 223498,
       "closeTime": 1778750099999
+    },
+    {
+      "openTime": 1778751000000,
+      "open": 5.4556,
+      "high": 5.4899,
+      "low": 5.4044,
+      "close": 5.4205,
+      "volume": 230341,
+      "closeTime": 1778751899999
+    },
+    {
+      "openTime": 1778751900000,
+      "open": 5.4201,
+      "high": 5.4662,
+      "low": 5.3004,
+      "close": 5.4257,
+      "volume": 766233,
+      "closeTime": 1778752799999
     }
   ]
 }

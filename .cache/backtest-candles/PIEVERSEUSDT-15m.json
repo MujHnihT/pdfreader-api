@@ -2,7 +2,7 @@
   "symbol": "PIEVERSEUSDT",
   "interval": "15m",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1763119800000,
@@ -156306,6 +156306,24 @@
       "close": 1.0421,
       "volume": 1500028,
       "closeTime": 1778750099999
+    },
+    {
+      "openTime": 1778751000000,
+      "open": 1.0544,
+      "high": 1.0786,
+      "low": 1.0507,
+      "close": 1.0752,
+      "volume": 1968396,
+      "closeTime": 1778751899999
+    },
+    {
+      "openTime": 1778751900000,
+      "open": 1.0748,
+      "high": 1.0785,
+      "low": 1.0052,
+      "close": 1.0167,
+      "volume": 4267993,
+      "closeTime": 1778752799999
     }
   ]
 }

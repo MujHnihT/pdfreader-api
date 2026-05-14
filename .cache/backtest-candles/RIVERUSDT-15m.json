@@ -2,7 +2,7 @@
   "symbol": "RIVERUSDT",
   "interval": "15m",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1760712300000,
@@ -180381,6 +180381,24 @@
       "close": 7.245,
       "volume": 1272726.9,
       "closeTime": 1778750099999
+    },
+    {
+      "openTime": 1778751000000,
+      "open": 7.221,
+      "high": 7.252,
+      "low": 7.111,
+      "close": 7.197,
+      "volume": 341422.7,
+      "closeTime": 1778751899999
+    },
+    {
+      "openTime": 1778751900000,
+      "open": 7.197,
+      "high": 7.256,
+      "low": 7.13,
+      "close": 7.237,
+      "volume": 261373.9,
+      "closeTime": 1778752799999
     }
   ]
 }

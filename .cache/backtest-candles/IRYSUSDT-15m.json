@@ -2,7 +2,7 @@
   "symbol": "IRYSUSDT",
   "interval": "15m",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1764172800000,
@@ -145776,6 +145776,24 @@
       "close": 0.05935,
       "volume": 8096218,
       "closeTime": 1778750099999
+    },
+    {
+      "openTime": 1778751000000,
+      "open": 0.05812,
+      "high": 0.05831,
+      "low": 0.05663,
+      "close": 0.05716,
+      "volume": 8669817,
+      "closeTime": 1778751899999
+    },
+    {
+      "openTime": 1778751900000,
+      "open": 0.05718,
+      "high": 0.05733,
+      "low": 0.05616,
+      "close": 0.0566,
+      "volume": 4202707,
+      "closeTime": 1778752799999
     }
   ]
 }

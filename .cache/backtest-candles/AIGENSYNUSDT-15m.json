@@ -2,7 +2,7 @@
   "symbol": "AIGENSYNUSDT",
   "interval": "15m",
   "coverageStartTime": 1683768534484,
-  "coverageEndTime": 1778750934484,
+  "coverageEndTime": 1778752830195,
   "candles": [
     {
       "openTime": 1777472100000,
@@ -12783,6 +12783,24 @@
       "close": 0.03153,
       "volume": 18328410,
       "closeTime": 1778750099999
+    },
+    {
+      "openTime": 1778751000000,
+      "open": 0.03155,
+      "high": 0.03166,
+      "low": 0.03112,
+      "close": 0.03147,
+      "volume": 6703533,
+      "closeTime": 1778751899999
+    },
+    {
+      "openTime": 1778751900000,
+      "open": 0.03146,
+      "high": 0.03153,
+      "low": 0.03101,
+      "close": 0.03108,
+      "volume": 5790162,
+      "closeTime": 1778752799999
     }
   ]
 }
