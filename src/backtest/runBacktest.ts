@@ -194,9 +194,9 @@ const upperBoundByCloseTime = (candles: Candle[], time: number): number => {
   return left;
 };
 
-const getOutcome = (signal: StrategySignal, futureCandles: Candle[], maxHoldMs?: number): TradeOutcome => {
+const getOutcome = (signal: StrategySignal, scanTime: number, futureCandles: Candle[], maxHoldMs?: number): TradeOutcome => {
   const risk = signal.side === 'BUY' ? signal.price - signal.sl : signal.sl - signal.price;
-  const maxExitTime = maxHoldMs ? signal.h4CloseTime + maxHoldMs : undefined;
+  const maxExitTime = maxHoldMs ? scanTime + maxHoldMs : undefined;
 
   for (const candle of futureCandles) {
     if (maxExitTime && candle.openTime > maxExitTime) break;
@@ -395,6 +395,7 @@ const runSimulation = (
       const futureCandles = item.candles15m.filter((candle) => candle.openTime >= scanTime && candle.openTime <= end);
       const outcome = getOutcome(
         signal,
+        scanTime,
         futureCandles,
         params.maxHoldHours ? params.maxHoldHours * 60 * 60 * 1000 : undefined,
       );
