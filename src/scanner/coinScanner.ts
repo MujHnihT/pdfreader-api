@@ -141,16 +141,17 @@ export class CoinScanner {
           rewardRisk: env.rewardRisk,
         },
       );
+      const pricedSignal = signal ? await this.withCurrentEntry(signal) : null;
 
-      if (signal) {
+      if (pricedSignal) {
         console.log(
-          `[scanner] signal found ${signal.side} ${signal.symbol} price=${signal.price} tp=${signal.tp} sl=${signal.sl}`,
+          `[scanner] signal found ${pricedSignal.side} ${pricedSignal.symbol} price=${pricedSignal.price} tp=${pricedSignal.tp} sl=${pricedSignal.sl}`,
         );
       } else {
         console.log(`[scanner] no signal ${symbol}`);
       }
 
-      return { symbol, signal, latestH4: candles4h[candles4h.length - 1] || null };
+      return { symbol, signal: pricedSignal, latestH4: candles4h[candles4h.length - 1] || null };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`[scanner] error ${symbol}: ${message}`);
@@ -179,6 +180,24 @@ export class CoinScanner {
     }
 
     return exits;
+  }
+
+  private async withCurrentEntry(signal: StrategySignal): Promise<StrategySignal | null> {
+    const price = await this.exchange.getCurrentPrice(signal.symbol);
+    const risk = signal.side === 'BUY' ? price - signal.sl : signal.sl - price;
+
+    if (risk <= 0) {
+      console.warn(
+        `[scanner] ignored ${signal.side} ${signal.symbol}: current price=${price} is past SL=${signal.sl}`,
+      );
+      return null;
+    }
+
+    return {
+      ...signal,
+      price,
+      tp: signal.side === 'BUY' ? price + risk * env.rewardRisk : price - risk * env.rewardRisk,
+    };
   }
 
   private getExitNotification(activeSignal: StrategySignal, scan: SymbolScan): ExitNotification | null {

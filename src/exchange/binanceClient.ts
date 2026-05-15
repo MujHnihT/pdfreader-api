@@ -23,6 +23,12 @@ interface BinanceTicker {
   quoteVolume: string;
 }
 
+interface BinancePriceTicker {
+  symbol: string;
+  price: string;
+  time?: number;
+}
+
 interface ExchangeInfo {
   symbols: Array<{
     symbol: string;
@@ -93,6 +99,18 @@ export class BinanceClient {
         closeTime: item[6],
       }))
       .filter((candle) => candle.closeTime < now);
+  }
+
+  async getCurrentPrice(symbol: string): Promise<number> {
+    const response = await axios.get<BinancePriceTicker>(`${this.baseUrl}/fapi/v1/ticker/price`, {
+      params: { symbol },
+      timeout: 15000,
+    });
+    const price = Number(response.data.price);
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error(`Invalid ticker price for ${symbol}: ${response.data.price}`);
+    }
+    return price;
   }
 
   async getCandlesInRange(symbol: string, interval: string, startTime: number, endTime: number): Promise<Candle[]> {
