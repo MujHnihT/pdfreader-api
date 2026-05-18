@@ -1,6 +1,7 @@
 import express from 'express';
 import { env } from './config/env';
 import { coinScanner } from './scanner/coinScanner';
+import { priceJumpScanner } from './scanner/priceJumpScanner';
 
 const app = express();
 
@@ -12,6 +13,8 @@ app.get('/', (_req, res) => {
     version: env.version,
     cronEnabled: env.cronEnabled,
     cronExpression: env.cronExpression,
+    priceJumpCronEnabled: env.priceJumpCronEnabled,
+    priceJumpCronExpression: env.priceJumpCronExpression,
     timezone: env.timezone,
   });
 });
@@ -32,6 +35,16 @@ app.get('/api/cron', async (_req, res) => {
 
 app.get('/api/cron/vercel', async (_req, res) => {
   const result = await coinScanner.scanAndNotify();
+  res.json(result);
+});
+
+app.post('/price-jumps', async (_req, res) => {
+  const result = await priceJumpScanner.scanAndNotify();
+  res.json(result);
+});
+
+app.get('/api/cron/price-jumps', async (_req, res) => {
+  const result = await priceJumpScanner.scanAndNotify();
   res.json(result);
 });
 

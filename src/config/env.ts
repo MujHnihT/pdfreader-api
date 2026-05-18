@@ -26,6 +26,8 @@ export const env = {
   version: process.env.VERSION || '1.0.0',
   cronEnabled: toBoolean(process.env.CRON_ENABLED, true),
   cronExpression: process.env.CRON_EXPRESSION || '5 * * * *',
+  priceJumpCronEnabled: toBoolean(process.env.PRICE_JUMP_CRON_ENABLED, true),
+  priceJumpCronExpression: process.env.PRICE_JUMP_CRON_EXPRESSION || '0 * * * *',
   timezone: process.env.TZ || process.env.TIMEZONE || 'Asia/Ho_Chi_Minh',
   maxSymbols: toNumber(process.env.MAX_SYMBOLS, 50),
   scanConcurrency: toNumber(process.env.SCAN_CONCURRENCY, 5),
@@ -45,4 +47,7 @@ export const env = {
   slLookback1h: toNumber(process.env.SL_LOOKBACK_1H, 8),
   rewardRisk: toNumber(process.env.REWARD_RISK, 1.2),
   maxHoldHours: toNumber(process.env.MAX_HOLD_HOURS, 0),
+  priceJumpTopSymbols: toNumber(process.env.PRICE_JUMP_TOP_SYMBOLS, 20),
+  priceJumpLookbackMinutes: toNumber(process.env.PRICE_JUMP_LOOKBACK_MINUTES, 60),
+  priceJumpInterval: process.env.PRICE_JUMP_INTERVAL || '1m',
 };

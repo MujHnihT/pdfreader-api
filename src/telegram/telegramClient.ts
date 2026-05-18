@@ -8,6 +8,22 @@ export interface ExitNotification {
   checkedAt: number;
 }
 
+export interface PriceJumpSummary {
+  symbol: string;
+  jumps: number;
+  upJumps: number;
+  downJumps: number;
+  unchanged: number;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  changePercent: number;
+  rangePercent: number;
+  fromTime: number;
+  toTime: number;
+}
+
 export class TelegramClient {
   constructor(
     private readonly sendMessageUrl: string,
@@ -32,6 +48,11 @@ export class TelegramClient {
   async sendExitList(exits: ExitNotification[]): Promise<void> {
     if (exits.length === 0) return;
     await this.sendMessage(this.formatExitList(exits));
+  }
+
+  async sendPriceJumpReport(summaries: PriceJumpSummary[], lookbackMinutes: number): Promise<void> {
+    if (summaries.length === 0) return;
+    await this.sendMessage(this.formatPriceJumpReport(summaries, lookbackMinutes));
   }
 
   private async sendMessage(text: string): Promise<void> {
@@ -135,6 +156,33 @@ export class TelegramClient {
       `Price <code>${this.formatNumber(exit.exitPrice)}</code>`,
       `Entry <code>${this.formatNumber(signal.price)}</code>`,
       `Reason <code>${this.escapeHtml(exit.reason)}</code>`,
+    ].join(' | ');
+  }
+
+  private formatPriceJumpReport(summaries: PriceJumpSummary[], lookbackMinutes: number): string {
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour12: false,
+    });
+
+    return [
+      `<b>PRICE JUMP TOP COINS</b>`,
+      `Time: <code>${this.escapeHtml(time)}</code>`,
+      `Window: <code>${lookbackMinutes}m</code>`,
+      '',
+      summaries.map((summary, index) => this.formatPriceJumpLine(summary, index + 1)).join('\n'),
+    ].join('\n');
+  }
+
+  private formatPriceJumpLine(summary: PriceJumpSummary, rank: number): string {
+    const change = `${summary.changePercent >= 0 ? '+' : ''}${summary.changePercent.toFixed(2)}%`;
+    return [
+      `<code>${rank}. ${this.escapeHtml(summary.symbol)}</code>`,
+      `Nhịp <code>${summary.jumps}</code>`,
+      `Up/Down <code>${summary.upJumps}/${summary.downJumps}</code>`,
+      `Change <code>${change}</code>`,
+      `Range <code>${summary.rangePercent.toFixed(2)}%</code>`,
+      `Close <code>${this.formatNumber(summary.close)}</code>`,
     ].join(' | ');
   }
 

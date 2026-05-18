@@ -1,30 +1,254 @@
 [
   {
-    "symbol": "SKYAIUSDT",
+    "symbol": "ETHUSDT",
     "side": "SELL",
-    "price": 0.33501,
-    "tp": 0.28982399999999997,
-    "sl": 0.48563,
-    "h4CloseTime": 1778745599999,
+    "price": 2272.36,
+    "tp": 2264.26,
+    "sl": 2299.36,
+    "h4CloseTime": 1778817599999,
     "volume": {
-      "vol1h": 75100836,
-      "vol1hMA": 10820628.95,
-      "vol2h": 96880875,
-      "vol2hMA": 23880428.3
+      "vol1h": 428429.912,
+      "vol1hMA": 210877.68275,
+      "vol2h": 504696.17,
+      "vol2hMA": 340612.1681
     }
   },
   {
-    "symbol": "RIVERUSDT",
-    "side": "BUY",
-    "price": 7.352,
-    "tp": 7.445,
-    "sl": 7.042,
-    "h4CloseTime": 1778745599999,
+    "symbol": "LABUSDT",
+    "side": "SELL",
+    "price": 5.6038,
+    "tp": 5.4856,
+    "sl": 5.9978,
+    "h4CloseTime": 1778817599999,
     "volume": {
-      "vol1h": 2234107.2,
-      "vol1hMA": 617262.2949999999,
-      "vol2h": 3819160.2,
-      "vol2hMA": 840646.5800000001
+      "vol1h": 72942105,
+      "vol1hMA": 7323775.9,
+      "vol2h": 74366798,
+      "vol2hMA": 11550612.2
+    }
+  },
+  {
+    "symbol": "SUIUSDT",
+    "side": "SELL",
+    "price": 1.1764,
+    "tp": 1.1697399999999998,
+    "sl": 1.1986,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 19396966,
+      "vol1hMA": 11215838.174999997,
+      "vol2h": 29345896.3,
+      "vol2hMA": 23136579.49
+    }
+  },
+  {
+    "symbol": "1000PEPEUSDT",
+    "side": "SELL",
+    "price": 0.0040784,
+    "tp": 0.00406472,
+    "sl": 0.004124,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 7199392345,
+      "vol1hMA": 3167300998.3,
+      "vol2h": 9040630476,
+      "vol2hMA": 5473028075.85
+    }
+  },
+  {
+    "symbol": "TAOUSDT",
+    "side": "SELL",
+    "price": 304.27,
+    "tp": 303.05199999999996,
+    "sl": 308.33,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 34218.639,
+      "vol1hMA": 19875.06195,
+      "vol2h": 46085.099,
+      "vol2hMA": 36662.3876
+    }
+  },
+  {
+    "symbol": "FILUSDT",
+    "side": "SELL",
+    "price": 1.05,
+    "tp": 1.0452000000000001,
+    "sl": 1.066,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 14265965.6,
+      "vol1hMA": 4539496.964999999,
+      "vol2h": 19122444,
+      "vol2hMA": 8767525.315000001
+    }
+  },
+  {
+    "symbol": "WLDUSDT",
+    "side": "SELL",
+    "price": 0.2607,
+    "tp": 0.25961999999999996,
+    "sl": 0.2643,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 47408383,
+      "vol1hMA": 16496006.7,
+      "vol2h": 59057701,
+      "vol2hMA": 30154817.15
+    }
+  },
+  {
+    "symbol": "PAXGUSDT",
+    "side": "SELL",
+    "price": 4571.01,
+    "tp": 4557.717000000001,
+    "sl": 4615.32,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 1810.922,
+      "vol1hMA": 1071.36425,
+      "vol2h": 3282.838,
+      "vol2hMA": 1493.96415
+    }
+  },
+  {
+    "symbol": "AAVEUSDT",
+    "side": "SELL",
+    "price": 98.07,
+    "tp": 97.755,
+    "sl": 99.12,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 70137.3,
+      "vol1hMA": 39944.935000000005,
+      "vol2h": 89170.8,
+      "vol2hMA": 70235.36499999999
+    }
+  },
+  {
+    "symbol": "TRUMPUSDT",
+    "side": "SELL",
+    "price": 2.364,
+    "tp": 2.3558999999999997,
+    "sl": 2.391,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 2705117.26,
+      "vol1hMA": 1384100.4965,
+      "vol2h": 3554445.34,
+      "vol2hMA": 2879740.1195
+    }
+  },
+  {
+    "symbol": "XLMUSDT",
+    "side": "SELL",
+    "price": 0.16191,
+    "tp": 0.16143,
+    "sl": 0.16351,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 28580196,
+      "vol1hMA": 18758921.65,
+      "vol2h": 44948346,
+      "vol2hMA": 28481552.6
+    }
+  },
+  {
+    "symbol": "ASTERUSDT",
+    "side": "SELL",
+    "price": 0.6822,
+    "tp": 0.6786300000000001,
+    "sl": 0.6941,
+    "h4CloseTime": 1778817599999,
+    "volume": {
+      "vol1h": 9658856,
+      "vol1hMA": 3870375.3,
+      "vol2h": 14453584,
+      "vol2hMA": 6391786.7
+    }
+  },
+  {
+    "symbol": "AIGENSYNUSDT",
+    "side": "BUY",
+    "price": 0.04719,
+    "tp": 0.049923,
+    "sl": 0.03808,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 776683250,
+      "vol1hMA": 559578876.35,
+      "vol2h": 1516270457,
+      "vol2hMA": 762842970.25
+    }
+  },
+  {
+    "symbol": "BNBUSDT",
+    "side": "BUY",
+    "price": 684.88,
+    "tp": 688.144,
+    "sl": 674,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 67812.92,
+      "vol1hMA": 34409.777,
+      "vol2h": 101835.91,
+      "vol2hMA": 52444.07749999999
+    }
+  },
+  {
+    "symbol": "BILLUSDT",
+    "side": "BUY",
+    "price": 0.22608,
+    "tp": 0.231279,
+    "sl": 0.20875,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 113005714,
+      "vol1hMA": 67687259.25,
+      "vol2h": 202355052,
+      "vol2hMA": 156646876.55
+    }
+  },
+  {
+    "symbol": "PLAYUSDT",
+    "side": "SELL",
+    "price": 0.10742,
+    "tp": 0.104252,
+    "sl": 0.11798,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 85793555,
+      "vol1hMA": 65216443.15,
+      "vol2h": 137505843,
+      "vol2hMA": 75959248.25
+    }
+  },
+  {
+    "symbol": "TRXUSDT",
+    "side": "SELL",
+    "price": 0.3514,
+    "tp": 0.35064399999999996,
+    "sl": 0.35392,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 10015049,
+      "vol1hMA": 5632164.65,
+      "vol2h": 14488823,
+      "vol2hMA": 11316304.2
+    }
+  },
+  {
+    "symbol": "BCHUSDT",
+    "side": "SELL",
+    "price": 434.71,
+    "tp": 434.02299999999997,
+    "sl": 437,
+    "h4CloseTime": 1778831999999,
+    "volume": {
+      "vol1h": 10914.637,
+      "vol1hMA": 5654.7009,
+      "vol2h": 16961.596,
+      "vol2hMA": 8622.119349999999
     }
   }
 ]
