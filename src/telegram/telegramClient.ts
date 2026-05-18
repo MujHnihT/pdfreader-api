@@ -50,8 +50,18 @@ export class TelegramClient {
     await this.sendMessage(this.formatExitList(exits));
   }
 
-  async sendScanNoSignalReport(checked: number, errors: number): Promise<void> {
-    await this.sendMessage(this.formatScanNoSignalReport(checked, errors));
+  async sendScanSummaryReport(summary: {
+    checked: number;
+    signals: number;
+    newSignals: number;
+    exits: number;
+    errors: number;
+  }): Promise<void> {
+    await this.sendMessage(this.formatScanSummaryReport(summary));
+  }
+
+  async sendScanFailureReport(message: string): Promise<void> {
+    await this.sendMessage(this.formatScanFailureReport(message));
   }
 
   async sendPriceJumpReport(summaries: PriceJumpSummary[], lookbackMinutes: number): Promise<void> {
@@ -163,7 +173,13 @@ export class TelegramClient {
     ].join(' | ');
   }
 
-  private formatScanNoSignalReport(checked: number, errors: number): string {
+  private formatScanSummaryReport(summary: {
+    checked: number;
+    signals: number;
+    newSignals: number;
+    exits: number;
+    errors: number;
+  }): string {
     const time = new Date().toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
       hour12: false,
@@ -172,10 +188,24 @@ export class TelegramClient {
     return [
       `<b>ALT FLOW SCAN</b>`,
       `Time: <code>${this.escapeHtml(time)}</code>`,
-      `Checked: <code>${checked}</code>`,
-      `Signals: <code>0</code>`,
-      `Exits: <code>0</code>`,
-      `Errors: <code>${errors}</code>`,
+      `Checked: <code>${summary.checked}</code>`,
+      `Signals: <code>${summary.signals}</code>`,
+      `New signals: <code>${summary.newSignals}</code>`,
+      `Exits: <code>${summary.exits}</code>`,
+      `Errors: <code>${summary.errors}</code>`,
+    ].join('\n');
+  }
+
+  private formatScanFailureReport(message: string): string {
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour12: false,
+    });
+
+    return [
+      `<b>ALT FLOW SCAN FAILED</b>`,
+      `Time: <code>${this.escapeHtml(time)}</code>`,
+      `Error: <code>${this.escapeHtml(message)}</code>`,
     ].join('\n');
   }
 

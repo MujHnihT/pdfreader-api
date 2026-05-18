@@ -57,39 +57,54 @@ export class CoinScanner {
   async scanAndNotify(): Promise<ScanResult> {
     console.log(`[scanner] scanAndNotify started at ${new Date().toISOString()}`);
     await this.loadActiveSignals();
-    const result = await this.scan();
-    const newSignals: StrategySignal[] = [];
+    let result: ScanResult | null = null;
+    let newSignalsCount = 0;
 
-    if (result.exits.length > 0) {
-      console.log(`[scanner] sending Telegram exit list. exits=${result.exits.length}`);
-      await this.telegram.sendExitList(result.exits);
-    }
+    try {
+      result = await this.scan();
+      const newSignals: StrategySignal[] = [];
 
-    for (const signal of result.signals) {
-      const key = `${signal.symbol}:${signal.side}:${signal.h4CloseTime}`;
-      if (this.sentSignalKeys.has(key)) continue;
-      this.sentSignalKeys.add(key);
-      newSignals.push(signal);
-    }
-
-    if (newSignals.length > 0) {
-      console.log(`[scanner] sending Telegram signal list. signals=${newSignals.length}`);
-      await this.telegram.sendSignalList(newSignals);
-      for (const signal of newSignals) {
-        this.activeSignals.set(signal.symbol, signal);
+      if (result.exits.length > 0) {
+        console.log(`[scanner] sending Telegram exit list. exits=${result.exits.length}`);
+        await this.telegram.sendExitList(result.exits);
       }
-      await this.saveActiveSignals();
-    }
 
-    if (result.exits.length === 0 && newSignals.length === 0) {
-      console.log('[scanner] sending Telegram no-signal report.');
-      await this.telegram.sendScanNoSignalReport(result.checked, result.errors.length);
-    }
+      for (const signal of result.signals) {
+        const key = `${signal.symbol}:${signal.side}:${signal.h4CloseTime}`;
+        if (this.sentSignalKeys.has(key)) continue;
+        this.sentSignalKeys.add(key);
+        newSignals.push(signal);
+      }
 
-    console.log(
-      `[scanner] scanAndNotify finished. checked=${result.checked}, signals=${result.signals.length}, exits=${result.exits.length}, errors=${result.errors.length}`,
-    );
-    return result;
+      newSignalsCount = newSignals.length;
+      if (newSignals.length > 0) {
+        console.log(`[scanner] sending Telegram signal list. signals=${newSignals.length}`);
+        await this.telegram.sendSignalList(newSignals);
+        for (const signal of newSignals) {
+          this.activeSignals.set(signal.symbol, signal);
+        }
+        await this.saveActiveSignals();
+      }
+
+      console.log('[scanner] sending Telegram scan summary.');
+      await this.telegram.sendScanSummaryReport({
+        checked: result.checked,
+        signals: result.signals.length,
+        newSignals: newSignalsCount,
+        exits: result.exits.length,
+        errors: result.errors.length,
+      });
+
+      console.log(
+        `[scanner] scanAndNotify finished. checked=${result.checked}, signals=${result.signals.length}, exits=${result.exits.length}, errors=${result.errors.length}`,
+      );
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[scanner] scanAndNotify failed: ${message}`);
+      await this.telegram.sendScanFailureReport(message);
+      throw error;
+    }
   }
 
   async scan(): Promise<ScanResult> {
