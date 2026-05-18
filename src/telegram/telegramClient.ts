@@ -50,6 +50,10 @@ export class TelegramClient {
     await this.sendMessage(this.formatExitList(exits));
   }
 
+  async sendScanNoSignalReport(checked: number, errors: number): Promise<void> {
+    await this.sendMessage(this.formatScanNoSignalReport(checked, errors));
+  }
+
   async sendPriceJumpReport(summaries: PriceJumpSummary[], lookbackMinutes: number): Promise<void> {
     if (summaries.length === 0) return;
     await this.sendMessage(this.formatPriceJumpReport(summaries, lookbackMinutes));
@@ -157,6 +161,22 @@ export class TelegramClient {
       `Entry <code>${this.formatNumber(signal.price)}</code>`,
       `Reason <code>${this.escapeHtml(exit.reason)}</code>`,
     ].join(' | ');
+  }
+
+  private formatScanNoSignalReport(checked: number, errors: number): string {
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      hour12: false,
+    });
+
+    return [
+      `<b>ALT FLOW SCAN</b>`,
+      `Time: <code>${this.escapeHtml(time)}</code>`,
+      `Checked: <code>${checked}</code>`,
+      `Signals: <code>0</code>`,
+      `Exits: <code>0</code>`,
+      `Errors: <code>${errors}</code>`,
+    ].join('\n');
   }
 
   private formatPriceJumpReport(summaries: PriceJumpSummary[], lookbackMinutes: number): string {

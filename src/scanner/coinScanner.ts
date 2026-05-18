@@ -81,6 +81,11 @@ export class CoinScanner {
       await this.saveActiveSignals();
     }
 
+    if (result.exits.length === 0 && newSignals.length === 0) {
+      console.log('[scanner] sending Telegram no-signal report.');
+      await this.telegram.sendScanNoSignalReport(result.checked, result.errors.length);
+    }
+
     console.log(
       `[scanner] scanAndNotify finished. checked=${result.checked}, signals=${result.signals.length}, exits=${result.exits.length}, errors=${result.errors.length}`,
     );
